@@ -1,0 +1,171 @@
+/* css/styles.css */
+
+/* Importar tipografía moderna (Roboto/Inter) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+:root {
+    --color-primario: #2e7d32;      /* Verde ecológico principal */
+    --color-primario-hover: #1b5e20;
+    --color-secundario: #4caf50;
+    --color-fondo: #f4f6f8;
+    --color-tarjeta: #ffffff;
+    --color-texto: #2c3e50;
+    --color-borde: #e0e0e0;
+    --color-error: #d32f2f;
+    --color-exito: #388e3c;
+    --sombra-tarjeta: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: var(--color-fondo);
+    color: var(--color-texto);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Contenedor principal de tarjetas */
+.container {
+    background-color: var(--color-tarjeta);
+    width: 100%;
+    max-width: 480px;
+    padding: 32px 28px;
+    border-radius: 16px;
+    box-shadow: var(--sombra-tarjeta);
+    border: 1px solid var(--color-borde);
+}
+
+/* Encabezados y Textos */
+h2 {
+    color: var(--color-primario);
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Estilos de Formularios */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-texto);
+    margin-bottom: -6px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="url"],
+select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--color-borde);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fafafa;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
+    background-color: #fff;
+}
+
+/* Botones principales */
+button[type="submit"], .btn-principal {
+    background-color: var(--color-primario);
+    color: #ffffff;
+    border: none;
+    padding: 13px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-top: 10px;
+}
+
+button[type="submit"]:hover, .btn-principal:hover {
+    background-color: var(--color-primario-hover);
+}
+
+/* Enlaces y botones secundarios */
+a {
+    color: var(--color-primario);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Grilla de Alimentos Disponibles */
+.grid-excedentes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.card-excedente {
+    background-color: var(--color-tarjeta);
+    border-radius: 12px;
+    padding: 18px;
+    border: 1px solid var(--color-borde);
+    box-shadow: var(--sombra-tarjeta);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-excedente h3 {
+    color: var(--color-texto);
+    font-size: 1.1rem;
+    margin: 8px 0;
+}
+
+.card-excedente p {
+    text-align: left;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+}
+
+.tag-estado {
+    align-self: flex-start;
+    background-color: #e8f5e9;
+    color: var(--color-primario);
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+}
