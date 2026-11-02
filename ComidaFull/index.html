@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comida Full</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>Registro - Comida Full</h2>
+        
+        <form id="form-registro">
+            <label for="rol">¿Cómo te registras?</label>
+            <select id="rol" required>
+                <option value="donante">Empresa / Donante</option>
+                <option value="comedor">Comedor Social</option>
+            </select>
+
+            <input type="text" id="nombre" placeholder="Nombre de la Organización *" required>
+            <input type="text" id="responsable" placeholder="Persona Responsable *" required>
+            <input type="email" id="correo" placeholder="Correo Electrónico *" required>
+            <input type="tel" id="telefono" placeholder="Teléfono *" required>
+            <input type="text" id="direccion" placeholder="Dirección *" required>
+            <input type="text" id="horario" placeholder="Horario (solo comedores)">
+            <input type="password" id="contrasena" placeholder="Contraseña *" minlength="6" required>
+
+            <button type="submit">Enviar Solicitud</button>
+        </form>
+
+        <p id="mensaje"></p>
+    </div>
+
+    <!-- Librería oficial de Supabase para web -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Configuración y lógica -->
+    <script src="js/supabase-config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

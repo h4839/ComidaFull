@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comida Full - Iniciar Sesión</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <div class="container">
+        <h2>Iniciar Sesión - Comida Full</h2>
+        
+        <form id="form-login">
+            <label for="correo">Correo Electrónico:</label>
+            <input type="email" id="correo" placeholder="correo@ejemplo.com *" required>
+
+            <label for="contrasena">Contraseña:</label>
+            <input type="password" id="contrasena" placeholder="Tu contraseña *" required>
+
+            <button type="submit">Entrar</button>
+        </form>
+
+        <p id="mensaje-login"></p>
+
+        <p style="margin-top: 15px;">
+            ¿Aún no tienes cuenta? <a href="index.html">Regístrate aquí</a>
+        </p>
+    </div>
+
+    <!-- 1. Librería oficial de Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 2. Configuración de claves -->
+    <script src="js/supabase-config.js"></script>
+    <!-- 3. Lógica del inicio de sesión -->
+    <script src="js/login.js"></script>
+</body>
+</html>

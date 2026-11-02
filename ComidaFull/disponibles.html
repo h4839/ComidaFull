@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comida Full - Alimentos Disponibles</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .grid-excedentes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .card-excedente {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 16px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card-excedente img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .tag-estado {
+            background-color: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .btn-solicitar {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" style="max-width: 900px;">
+        <h2>Alimentos Disponibles (Tiempo Real)</h2>
+        <p>Lista de excedentes publicados por empresas y restaurantes donantes.</p>
+
+        <p id="mensaje-estado">Cargando excedentes disponibles...</p>
+
+        <!-- Contenedor dinámico de tarjetas -->
+        <div id="contenedor-excedentes" class="grid-excedentes"></div>
+
+        <p style="margin-top: 25px;">
+            <a href="login.html" id="btn-cerrar-sesion">Cerrar Sesión</a>
+        </p>
+    </div>
+
+    <!-- 1. Librería Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 2. Configuración del cliente -->
+    <script src="js/supabase-config.js"></script>
+    <!-- 3. Lógica en tiempo real -->
+    <script src="js/disponibles.js"></script>
+</body>
+</html>
