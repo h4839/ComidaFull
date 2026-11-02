@@ -1,0 +1,9 @@
+[33maa67740[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m HEAD@{0}: commit: Corregir lectura de elemento nulo mensaje-registro en app.js
+[33mf5093be[m HEAD@{1}: commit: Corregir lectura de elemento nulo mensaje-registro en app.js
+[33mabfa888[m HEAD@{2}: commit: Redirigir a login tras el registro exitoso
+[33m7d17faf[m HEAD@{3}: commit: Permitir ingreso inmediato tras el registro y ajustar validacion de login
+[33m7c77bf5[m HEAD@{4}: commit: Aplicar estilos visuales de Figma al proyecto web
+[33me94926e[m HEAD@{5}: commit: Mover archivos a la raíz
+[33m59c0f5d[m HEAD@{6}: commit: Mover archivos a la raíz
+[33m66ff377[m HEAD@{7}: Branch: renamed refs/heads/master to refs/heads/main
+[33m66ff377[m HEAD@{9}: commit (initial): Registro, login, publicacion de excedentes y tiempo real funcionales

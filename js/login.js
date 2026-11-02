@@ -1,5 +1,4 @@
 // js/login.js
-
 document.addEventListener('DOMContentLoaded', () => {
     const formLogin = document.getElementById('form-login');
     const mensajeLogin = document.getElementById('mensaje-login');
@@ -7,56 +6,45 @@ document.addEventListener('DOMContentLoaded', () => {
     if (formLogin) {
         formLogin.addEventListener('submit', async (e) => {
             e.preventDefault();
-            mensajeLogin.style.color = 'black';
-            mensajeLogin.textContent = 'Iniciando sesión...';
 
             const correo = document.getElementById('correo').value;
             const contrasena = document.getElementById('contrasena').value;
 
             try {
                 // 1. Iniciar sesión en Supabase Auth
-                const { data: authData, error: authError } = await window.supabaseClient.auth.signInWithPassword({
+                const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
                     email: correo,
-                    password: contrasena
+                    password: contrasena,
                 });
 
                 if (authError) throw authError;
 
                 const userId = authData.user.id;
 
-                // 2. Consultar la tabla 'perfiles' con .maybeSingle()
-                const { data: perfil, error: perfilError } = await window.supabaseClient
+                // 2. Obtener el perfil del usuario
+                const { data: perfil, error: perfilError } = await supabaseClient
                     .from('perfiles')
                     .select('*')
                     .eq('id', userId)
-                    .maybeSingle(); // Retorna null en lugar de explotar con excepción si no existe
+                    .single();
 
-                if (perfilError) throw perfilError;
-
-                // Validar si el usuario no tiene fila en la tabla perfiles
-                if (!perfil) {
-                    mensajeLogin.style.color = 'red';
-                    mensajeLogin.textContent = 'El usuario existe en Auth pero no tiene perfil asociado en la base de datos.';
-                    return;
+                if (perfilError || !perfil) {
+                    throw new Error("No se encontró un perfil asociado a esta cuenta.");
                 }
 
-                // 3. Validar si la cuenta está aprobada (RF-03)
-                if (!perfil.aprobado) {
-                    mensajeLogin.style.color = 'orange';
-                    mensajeLogin.textContent = 'Tu cuenta aún está pendiente de aprobación por el administrador.';
-                    await window.supabaseClient.auth.signOut();
-                    return;
+                // 3. Redirección según rol
+                if (perfil.rol === 'comedor' || perfil.rol === 'donante') {
+                    window.location.href = 'disponibles.html';
+                } else {
+                    window.location.href = 'disponibles.html';
                 }
-
-                // 4. Inicio de sesión exitoso
-                mensajeLogin.style.color = 'green';
-                mensajeLogin.textContent = `¡Bienvenido ${perfil.nombre_organizacion}! Accediendo como ${perfil.rol}...`;
-                localStorage.setItem('usuario_actual', JSON.stringify(perfil));
 
             } catch (error) {
-                console.error("Error en Login:", error.message);
-                mensajeLogin.style.color = 'red';
-                mensajeLogin.textContent = 'Error al iniciar sesión: ' + error.message;
+                console.error("Error al iniciar sesión:", error.message);
+                if (mensajeLogin) {
+                    mensajeLogin.style.color = "red";
+                    mensajeLogin.textContent = "Error: " + error.message;
+                }
             }
         });
     }
