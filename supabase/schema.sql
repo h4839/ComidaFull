@@ -350,6 +350,25 @@ begin
   update public.perfiles set activo = p_activo where id = p_id and rol <> 'admin';
 end $$;
 
+-- Cada usuario edita solo sus datos de contacto; nunca su rol ni su aprobación
+create or replace function public.actualizar_mi_perfil(
+  p_nombre text, p_responsable text, p_telefono text, p_direccion text, p_horario text
+) returns void
+language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'Inicia sesión para continuar.'; end if;
+  if coalesce(trim(p_nombre), '') = '' then raise exception 'El nombre es obligatorio.'; end if;
+  update public.perfiles
+     set nombre_organizacion = trim(p_nombre),
+         responsable         = nullif(trim(coalesce(p_responsable, '')), ''),
+         telefono            = nullif(trim(coalesce(p_telefono, '')), ''),
+         direccion           = nullif(trim(coalesce(p_direccion, '')), ''),
+         horario_atencion    = case when rol = 'comedor'
+                                    then nullif(trim(coalesce(p_horario, '')), '')
+                                    else horario_atencion end
+   where id = auth.uid();
+end $$;
+
 -- Sitio público: solo datos agregados, sin información personal (RF-15, RF-16, RF-18)
 create or replace function public.estadisticas_publicas() returns json
 language sql security definer stable set search_path = public as $$

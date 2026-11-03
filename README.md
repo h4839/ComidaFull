@@ -19,6 +19,12 @@ La URL y la clave pública de Supabase están en `js/supabase-config.js`.
 
 Registro → aprobación del administrador (RF-03) → la empresa publica con foto y caducidad (RF-05 a 08) → el comedor ve la lista por caducidad (RF-10) y acepta; el primero la reserva (RF-11) → aviso al donante con contacto (RF-12) → el comedor confirma la cantidad recibida o rechaza con motivo (RF-13) → historial (RF-14) y contador público (RF-15).
 
+## Pantallas (Figma M01–M13)
+
+Todas llevan barra inferior. Públicas: Inicio / Ingresar / Registrarme. Empresa: Publicaciones / Publicar / Perfil. Comedor: Explorar / Mis reservas / Perfil. Administrador: Registros / Perfil. La campana de avisos está arriba a la derecha.
+
+Foto de portada: exporta la imagen de Figma como `img/hero.jpg`. Datos de contacto de "Ayuda": constante `CONTACTO` al inicio de `js/app.js`.
+
 ## Estructura
 
 ```
