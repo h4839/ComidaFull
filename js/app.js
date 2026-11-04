@@ -62,7 +62,11 @@ const ICONS = {
     plusc: '<circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/>',
     compass: '<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/>',
     box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 22V12"/>',
-    heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>'
+    heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    sprout: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+    handheart: '<path d="M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16"/><path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 15 6 6"/><path d="M19.5 8.5c.7-.7 1.5-1.6 1.5-2.7A2.73 2.73 0 0 0 16 4a2.78 2.78 0 0 0-5 1.8c0 1.2.8 2 1.5 2.8L16 12Z"/>',
+    sliders: '<path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/>',
+    message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'
 };
 const ico = (n, size) => `<svg class="ico" ${size ? `style="width:${size}px;height:${size}px"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
 
@@ -78,21 +82,22 @@ const pill = (estado) => { const [t, c] = ESTADOS[estado] || [estado, '']; retur
 
 const hoyISO = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
 const ymd = (iso) => String(iso).slice(0, 10).split('-').map(Number);
-const fmtFecha = (iso) => {
-    if (!iso) return '';
-    const [y, m, d] = ymd(iso);
-    return new Date(y, m - 1, d).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }).replace('.', '');
-};
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const MESES_L = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const fmtFecha = (iso) => { if (!iso) return ''; const [, m, d] = ymd(iso); return `${d} ${MESES[m - 1]}.`; };          // 24 oct.
+const fmtLargo = (iso) => { if (!iso) return ''; const [, m, d] = ymd(iso); return `${d} de ${MESES_L[m - 1]}`; };       // 24 de octubre
+const fmtDM = (iso) => { if (!iso) return ''; const [, m, d] = ymd(iso); return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}`; }; // 25/10
+const diaLocal = (ts) => new Date(ts).toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
 const fmtDMA = (iso) => { if (!iso) return ''; const [y, m, d] = ymd(iso); return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`; };
 const fmtFechaHora = (ts) => new Date(ts).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 const fmtHora = (t) => String(t || '').slice(0, 5);
-const fmtNum = (n) => Number(n || 0).toLocaleString('es-MX');
+const fmtNum = (n) => String(Math.round(Number(n || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // 12.480
 const unidadTxt = (u) => (u === 'porciones' ? 'porc.' : u === 'piezas' ? 'pzas' : u);
-const fmtCant = (c, u) => `${Number(c).toLocaleString('es-MX', { maximumFractionDigits: 2 })} ${unidadTxt(u)}`;
+const fmtCant = (c, u) => `${Number(c).toLocaleString('es-AR', { maximumFractionDigits: 2 })} ${unidadTxt(u)}`;
 const inicial = (s) => (String(s || '?').trim()[0] || '?').toUpperCase();
 const primerNombre = (s) => String(s || '').trim().split(/\s+/)[0] || '';
 const diasPara = (iso) => { const [y, m, d] = ymd(iso); const h = hoyISO().split('-').map(Number); return Math.round((new Date(y, m - 1, d) - new Date(h[0], h[1] - 1, h[2])) / 864e5); };
-const cuando = (iso) => { const n = diasPara(iso); return n === 0 ? 'Caduca hoy' : n === 1 ? 'Caduca mañana' : `Caduca ${fmtFecha(iso)}`; };
+const corto = (s) => String(s || '').replace(/^comedor\s+/i, ''); // "Comedor La Esperanza" -> "La Esperanza"
 
 function msgErr(e) {
     const m = String((e && e.message) || e || '');
@@ -184,7 +189,7 @@ const panelDe = (p) => (p && p.rol === 'admin' ? '/admin' : p && p.rol === 'come
 /* =====================================================================
    Piezas de interfaz comunes
    ===================================================================== */
-const marca = () => `<a class="brand" href="#/"><span class="brand-mark">${ico('leaf')}</span>comida full</a>`;
+const marca = () => `<a class="brand" href="#/"><span class="brand-mark">${ico('sprout')}</span>comida full</a>`;
 
 const campana = () => `<button class="icon-btn" data-go="/avisos" aria-label="Avisos">${ico('bell', 22)}${S.avisos > 0 ? `<i class="dot">${S.avisos > 9 ? '9+' : S.avisos}</i>` : ''}</button>`;
 const topLogo = (der = '') => `<header class="topbar">${marca()}<div>${der}</div></header>`;
@@ -274,11 +279,11 @@ function vHome() {
     const sesion = S.session && aprobado(S.perfil);
     app.innerHTML = `
         ${topLogo(`<button class="icon-btn" id="btn-menu" aria-label="Menú">${ico('menu', 22)}</button>`)}
-        <main class="screen with-nav">
+        <main class="screen ${S.session ? 'with-nav' : ''}">
             <section class="hero">
                 <span class="tagline">${ico('heart', 13)} Menos desperdicio, más comunidad</span>
                 <h1 class="h1">Lo que sobra,<br>puede hacer<br><span class="accent">mucha falta.</span></h1>
-                <p class="lead">Conectamos empresas con comedores para que los alimentos lleguen a quienes los necesitan.</p>
+                <p class="lead">Conectamos empresas con comedores comunitarios para que los alimentos lleguen a quienes los necesitan.</p>
                 <div class="hero-photo">
                     <div class="emoji" aria-hidden="true">🥬🍞🍅🥕</div>
                     <img src="img/hero.jpg" alt="Canasta con verduras y pan rescatados" onerror="this.remove()">
@@ -293,30 +298,11 @@ function vHome() {
                         <button class="btn btn-primary" data-go="/registro/empresa">Soy empresa</button>
                         <button class="btn btn-outline" data-go="/registro/comedor">Soy comedor</button>
                        </div>
-                       <p class="linkline">¿Ya tienes cuenta? <a href="#/login">Inicia sesión</a></p>`}
+                       <p class="linkline green">¿Ya tienes cuenta? <a href="#/login">Iniciar sesión</a></p>`}
             </section>
-
-            <h2 class="section-title">Cómo funciona</h2>
-            <div class="steps">
-                <div class="step"><span class="n">1</span><div><b>La empresa publica</b><span>Foto, cantidad y fecha de caducidad en alrededor de un minuto.</span></div></div>
-                <div class="step"><span class="n">2</span><div><b>Un comedor lo acepta</b><span>El primero que lo pide lo reserva y recoge en el local.</span></div></div>
-                <div class="step"><span class="n">3</span><div><b>Se confirma y se suma</b><span>Con cada recepción sube el contador público de porciones.</span></div></div>
-            </div>
-
-            <h2 class="section-title">Empresas aliadas</h2>
-            <div class="chips" id="lista-empresas"><span class="muted small">Cargando…</span></div>
-
-            <h2 class="section-title">Comedores participantes</h2>
-            <div class="stack mt12" id="lista-comedores"><span class="muted small">Cargando…</span></div>
-
-            <h2 class="section-title">Agenda 2030</h2>
-            <div class="ods">
-                <div style="background:#bf8b2e"><b>ODS 2</b>Hambre cero</div>
-                <div style="background:#c4572f"><b>ODS 12</b>Producción y consumo responsables</div>
-            </div>
-            <p class="footnote">Comida Full respeta la dignidad de quienes reciben ayuda: nunca mostramos rostros ni datos personales de beneficiarios.</p>
+            <p class="footnote">Datos de la plataforma en tiempo real.</p>
         </main>
-        ${navInferior(S.session ? null : '/')}`;
+        ${S.session ? navInferior(null) : ''}`;
     $('#btn-menu').onclick = verMenu;
 
     const cargar = async () => {
@@ -329,29 +315,12 @@ function vHome() {
     };
     cargar();
     S.timers.push(setInterval(cargar, 20000));
-
-    API.aliados().then((lista) => {
-        const emp = lista.filter((x) => x.rol === 'donante');
-        const com = lista.filter((x) => x.rol === 'comedor');
-        const le = $('#lista-empresas'), lc = $('#lista-comedores');
-        if (le) le.innerHTML = emp.length
-            ? emp.map((x) => `<span class="chip"><span class="logo">${x.logo_url ? `<img src="${esc(x.logo_url)}" alt="">` : esc(inicial(x.nombre))}</span>${esc(x.nombre)}</span>`).join('')
-            : '<span class="muted small">Pronto verás aquí a las empresas que participan.</span>';
-        if (lc) lc.innerHTML = com.length
-            ? com.map((x) => `<div class="place">${ico('pin')}<div><b>${esc(x.nombre)}</b><span>${esc(x.direccion || 'Dirección no disponible')}</span></div></div>`).join('')
-            : '<span class="muted small">Pronto verás aquí a los comedores que participan.</span>';
-    }).catch((e) => {
-        console.warn('Aliados:', e.message);
-        const le = $('#lista-empresas'), lc = $('#lista-comedores');
-        if (le) le.innerHTML = '<span class="muted small">No se pudo cargar la lista.</span>';
-        if (lc) lc.innerHTML = '';
-    });
 }
 
 function vLogin() {
     app.innerHTML = `
-        <main class="screen with-nav" style="padding-top:18px">
-            <div class="big-icon">${ico('leaf')}</div>
+        <main class="screen" style="padding-top:18px">
+            <div class="big-icon">${ico('handheart')}</div>
             <h1 class="h2">Qué bueno verte de nuevo.</h1>
             <p class="lead">Entra y sigue haciendo que los alimentos encuentren su lugar.</p>
             <form class="form" id="f-login" novalidate>
@@ -370,8 +339,7 @@ function vLogin() {
             <p class="linkline mt20">¿Todavía no formas parte?</p>
             <button class="btn btn-outline btn-block mt8" data-go="/rol">Crear una cuenta</button>
             <div class="foot-row"><button class="back" data-go="/">${ico('back')} Volver</button>${marca()}</div>
-        </main>
-        ${navInferior('/login')}`;
+        </main>`;
     activarOjo();
     $('#olvide').onclick = () => {
         modal({
@@ -409,7 +377,7 @@ function vRol() {
     let rol = sessionStorage.getItem('cf_rol_sel') || 'empresa';
     app.innerHTML = `
         ${topBack('/login')}
-        <main class="screen with-nav">
+        <main class="screen">
             <h1 class="h2 mt8">Cada rol suma.</h1>
             <p class="lead">¿Cómo quieres formar parte de Comida Full?</p>
             <div class="stack mt16" role="radiogroup" aria-label="Rol">
@@ -427,8 +395,7 @@ function vRol() {
             <div class="notice mt16">${ico('shield')}<div><b>Una comunidad de confianza</b><span>Revisamos cada registro antes de habilitar el acceso a la plataforma.</span></div></div>
             <button class="btn btn-primary btn-block mt16" id="seguir"></button>
             <p class="linkline">¿Ya tienes cuenta? <a href="#/login">Inicia sesión</a></p>
-        </main>
-        ${navInferior('/rol')}`;
+        </main>`;
     const pintar = () => {
         $$('.role').forEach((r) => { const on = r.dataset.rol === rol; r.classList.toggle('sel', on); r.setAttribute('aria-checked', on); });
         $('#seguir').innerHTML = `${ico('arrow')} ${rol === 'empresa' ? 'Continuar como empresa' : 'Continuar como comedor'}`;
@@ -442,7 +409,7 @@ function vRegistro(tipo) {
     const empresa = tipo !== 'comedor';
     app.innerHTML = `
         ${topBack('/rol')}
-        <main class="screen with-nav">
+        <main class="screen">
             <h1 class="h2 mt8">${empresa ? 'Registra tu empresa' : 'Registra tu comedor'}</h1>
             <p class="lead">Todos los campos son obligatorios.</p>
             <form class="form" id="f-reg" novalidate>
@@ -465,9 +432,8 @@ function vRegistro(tipo) {
                 <button class="btn btn-primary btn-block" type="submit">${ico('arrow')} Enviar solicitud</button>
             </form>
             <p class="label-cap">Después de enviar la solicitud</p>
-            <div class="notice notice-err mt8">${ico('alert')}<div><b>Tu registro está en revisión</b><span>Te avisaremos por correo. No podrás ${empresa ? 'publicar' : 'aceptar excedentes'} hasta que administración apruebe tu cuenta.</span></div></div>
-        </main>
-        ${navInferior('/rol')}`;
+            <div class="notice notice-err mt8">${ico('clock')}<div><b>Tu registro está en revisión</b><span>${empresa ? 'Te avisaremos por correo. No podrás publicar hasta que administración apruebe tu cuenta.' : 'Te avisaremos por correo. La aprobación es manual; aún no puedes reservar excedentes.'}</span></div></div>
+        </main>`;
     activarOjo();
     $('#ver-terminos').onclick = (e) => { e.preventDefault(); verPrivacidad(); };
     $('#f-reg').addEventListener('submit', async (e) => {
@@ -502,13 +468,12 @@ function vEnviado() {
     const correo = sessionStorage.getItem('cf_enviado') || 'tu correo';
     app.innerHTML = `
         ${topLogo()}
-        <main class="screen with-nav center">
+        <main class="screen center">
             <div class="mt32" style="font-size:54px">📬</div>
             <h1 class="h2 mt12">Solicitud enviada</h1>
             <p class="lead">Revisa ${esc(correo)} para confirmar tu cuenta. Después, un administrador aprobará tu registro y podrás entrar.</p>
             <button class="btn btn-primary btn-block mt24" data-go="/login">Ir a iniciar sesión</button>
-        </main>
-        ${navInferior(null)}`;
+        </main>`;
 }
 
 function vPendiente() {
@@ -578,7 +543,7 @@ async function vMisPublicaciones() {
 function itemPublicacion(x) {
     let sub = '';
     if (x.estado === 'publicado') sub = `<span class="item-sub warn">Hasta las ${fmtHora(x.hora_limite)} · Cancelar publicación</span>`;
-    else if (x.estado === 'aceptado') sub = `<span class="item-sub">${esc((x.comedor && x.comedor.nombre_organizacion) || 'Un comedor')}</span>`;
+    else if (x.estado === 'aceptado') sub = `<span class="item-sub">${esc(corto((x.comedor && x.comedor.nombre_organizacion) || 'Un comedor'))}</span>`;
     else if (x.estado === 'vencido') sub = `<span class="item-sub">Caducó el ${fmtFecha(x.fecha_caducidad)}</span>`;
     else sub = `<span class="item-sub">${fmtFecha(x.fecha_caducidad)}</span>`;
     return `<button class="item" data-go="/publicacion/${esc(x.id)}">
@@ -604,7 +569,7 @@ function vPublicar() {
                     <div class="field"><label for="unidad">Unidad *</label>
                         <select class="input" id="unidad"><option value="kg">kg</option><option value="porciones">porciones</option><option value="piezas">piezas</option><option value="litros">litros</option></select></div>
                 </div>
-                <div class="field" id="w-porc"><label for="porciones">Porciones aproximadas</label>
+                <div class="field" id="w-porc" hidden><label for="porciones">Porciones aproximadas</label>
                     <input class="input" id="porciones" type="number" inputmode="numeric" min="1" step="1">
                     <span class="hint">Sirve para el contador público. Sugerido: 4 porciones por kg o litro.</span></div>
                 <div class="row2">
@@ -618,7 +583,7 @@ function vPublicar() {
                         <span class="ph">${ico('camera', 26)}<br>Toma o sube una foto</span></label></div>
                 <div class="locbox">${ico('pin')}<div><b>${esc(p.nombre_organizacion)}</b><span>${esc(p.direccion || 'Sin dirección registrada')}</span></div></div>
                 <label class="check"><input type="checkbox" id="ok-estado"> Declaro que los alimentos están en buen estado, son aptos para el consumo y se conservaron correctamente.</label>
-                <span class="hint" style="margin-top:-6px">Obligatorio para poder publicar. Los comedores verán tu dirección de recogida.</span>
+                <span class="hint" style="margin-top:-6px">Obligatorio para publicar. La recogida debe ocurrir antes de la hora límite.</span>
                 <p class="form-error" id="err"></p>
                 <button class="btn btn-primary btn-block" type="submit">${ico('plus')} Publicar excedente</button>
             </form>
@@ -636,7 +601,6 @@ function vPublicar() {
     const sugerirPorciones = () => {
         const u = $('#unidad').value, c = parseFloat($('#cantidad').value);
         const necesita = u === 'kg' || u === 'litros';
-        $('#w-porc').hidden = !necesita;
         if (necesita && c > 0) $('#porciones').value = Math.round(c * 4);
     };
     $('#unidad').addEventListener('change', sugerirPorciones);
@@ -723,13 +687,13 @@ async function vPubDetalle(id) {
         main.innerHTML = `
             <h1 class="h2 mt8">${esc(tt)}</h1>
             <p class="lead">${esc(ss)}</p>
-            <div class="photo-big">${x.foto_url ? `<img src="${esc(x.foto_url)}" alt="${esc(x.tipo_alimento)}">` : '🍽️'}</div>
+            <div class="photo-big short">${x.foto_url ? `<img src="${esc(x.foto_url)}" alt="${esc(x.tipo_alimento)}">` : '🍽️'}</div>
             <div class="title-row"><h2>${esc(x.tipo_alimento)}</h2>${pill(x.estado)}</div>
             <div class="info2">
                 <div class="cell">${ico('box')}<div><small>Cantidad</small><b>${esc(fmtCant(x.cantidad, x.unidad))}${x.porciones ? `, aprox. ${fmtNum(x.porciones)} porciones` : ''}</b></div></div>
-                <div class="cell">${ico('clock')}<div><small>Recogida</small><b>Antes de las ${fmtHora(x.hora_limite)}</b></div></div>
+                <div class="cell">${ico('clock')}<div><small>Recogida hoy, ${esc(fmtFecha(hoyISO()))}</small><b>Antes de las ${fmtHora(x.hora_limite)}</b></div></div>
             </div>
-            <p class="muted small mt12">Caducidad ${fmtDMA(x.fecha_caducidad)}</p>
+            <p class="muted small mt12">Caducidad: ${fmtDMA(x.fecha_caducidad)}</p>
             ${c ? `<div class="card mt16">
                     <div class="between"><b>${esc(c.nombre_organizacion)}</b>${pill('aceptado')}</div>
                     <div class="kv">
@@ -738,7 +702,7 @@ async function vPubDetalle(id) {
                     </div>
                     ${c.telefono && x.estado === 'aceptado' ? `<a class="btn btn-primary btn-block mt12" href="tel:${esc(c.telefono)}">${ico('phone')} Contactar al comedor</a>` : ''}
                 </div>` : ''}
-            ${x.estado === 'aceptado' ? `<div class="notice mt12">${ico('checkc')}<div><b>Recogida coordinada</b><span>${esc(S.perfil.direccion || 'Tu dirección de recogida')}. La entrega se realiza en tu local, en el horario indicado.</span></div></div>` : ''}
+            ${x.estado === 'aceptado' ? `<div class="notice mt12">${ico('lock')}<div><b>Recogida coordinada</b><span>${esc(S.perfil.direccion || 'Tu dirección de recogida')}. La reserva es exclusiva para este comedor; no se puede cancelar.</span></div></div>` : ''}
             ${r ? `<div class="notice ${r.resultado === 'confirmada' ? '' : 'notice-err'} mt12">${ico(r.resultado === 'confirmada' ? 'checkc' : 'alert')}<div>
                     <b>${r.resultado === 'confirmada' ? `Recibieron ${esc(fmtCant(r.cantidad_recibida, x.unidad))}` : 'El comedor rechazó el lote'}</b>
                     <span>${r.resultado === 'confirmada' ? `${fmtNum(r.porciones_rescatadas)} porciones sumadas al contador público.` : `Motivo: ${esc(r.motivo || '—')}`}</span></div></div>` : ''}
@@ -760,24 +724,32 @@ async function vPubDetalle(id) {
    COMEDOR (M10–M13)
    ===================================================================== */
 async function vExplorar() {
-    let datos = [], q = '';
+    // Orden inicial de la lista: 'recientes' (como en Figma) o 'caducidad' (RF-10). El usuario puede alternarlo tocando el texto verde.
+    let datos = [], q = '', orden = 'recientes';
+    const dir = String(S.perfil.direccion || '');
+    const ciudad = dir.includes(',') ? dir.split(',').pop().trim() : '';
     app.innerHTML = `${topRol()}<main class="screen with-nav">
         <h1 class="h2 mt8">Alimentos con futuro</h1>
-        <p class="lead">Hola, ${esc(primerNombre(S.perfil.responsable) || S.perfil.nombre_organizacion)}. Encuentra lo que otros pueden rescatar hoy.</p>
-        <div class="search">${ico('search')}<input class="input" id="buscar" type="search" placeholder="Buscar alimento o empresa" aria-label="Buscar alimento o empresa"></div>
-        <div class="count-row"><b id="conteo">Cargando…</b><span>Caducan primero</span></div>
+        <p class="lead">Hola, ${esc(primerNombre(S.perfil.responsable) || S.perfil.nombre_organizacion)}. Encuentra tu próxima recogida.</p>
+        <div class="search">${ico('search')}<input class="input" id="buscar" type="search" placeholder="Buscar alimento o empresa" aria-label="Buscar alimento o empresa"><span class="filter" aria-hidden="true">${ico('sliders')}</span></div>
+        <div class="count-row"><b id="conteo">Cargando…</b><button type="button" id="orden" title="Cambiar orden" style="border:0;background:none;color:var(--v700);font-weight:600;font-size:12.5px;cursor:pointer">Más recientes</button></div>
         <div id="lista" class="grid-list">${loader()}</div>
-        <div class="notice mt16">${ico('shield')}<div><b>Solo tú puedes reservar</b><span>Al aceptar un excedente te comprometes a recogerlo en el horario indicado.</span></div></div>
+        <div class="notice mt16">${ico('shield')}<div><b>Solo lo que puedes reservar</b><span>No mostramos excedentes vencidos ni aceptados por otro comedor.</span></div></div>
     </main>${navInferior('/explorar')}`;
 
     const pintar = () => {
         const t = q.trim().toLowerCase();
-        const lista = t ? datos.filter((x) => `${x.tipo_alimento} ${(x.donante || {}).nombre_organizacion || ''}`.toLowerCase().includes(t)) : datos;
-        $('#conteo').textContent = `${lista.length} disponible${lista.length === 1 ? '' : 's'}`;
+        let lista = t ? datos.filter((x) => `${x.tipo_alimento} ${(x.donante || {}).nombre_organizacion || ''}`.toLowerCase().includes(t)) : datos;
+        lista = [...lista].sort(orden === 'recientes'
+            ? (a, b) => String(b.created_at).localeCompare(String(a.created_at))
+            : (a, b) => `${a.fecha_caducidad} ${a.hora_limite}`.localeCompare(`${b.fecha_caducidad} ${b.hora_limite}`));
+        $('#conteo').textContent = `${lista.length} disponible${lista.length === 1 ? '' : 's'}${ciudad ? ' en ' + ciudad : ''}`;
+        $('#orden').textContent = orden === 'recientes' ? 'Más recientes' : 'Caducan primero';
         $('#lista').innerHTML = lista.length ? lista.map(tarjetaDisponible).join('')
             : `<div class="empty"><div class="big">🌿</div><b>${t ? 'Sin resultados' : 'No hay alimentos disponibles ahora'}</b><p class="small mt8">${t ? 'Prueba con otra palabra.' : 'Esta lista se actualiza sola cuando una empresa publica algo nuevo.'}</p></div>`;
     };
     $('#buscar').addEventListener('input', (e) => { q = e.target.value; pintar(); });
+    $('#orden').addEventListener('click', () => { orden = orden === 'recientes' ? 'caducidad' : 'recientes'; if (datos.length || !$('#lista .loader')) pintar(); });
 
     const cargar = async () => {
         const { data, error } = await sb.from('excedentes')
@@ -803,10 +775,10 @@ function tarjetaDisponible(x) {
                 <span class="fcard-title" style="display:block">${esc(x.tipo_alimento)}</span>
                 <span class="fcard-sub" style="display:block">${esc(d.nombre_organizacion || 'Empresa')} · ${esc(fmtCant(x.cantidad, x.unidad))}</span>
                 <span class="fcard-line" style="display:block">${esc(d.direccion || 'Dirección no especificada')}</span>
-                <span class="fcard-line ${urgente ? 'urgent' : ''}" style="display:block">${esc(cuando(x.fecha_caducidad))} · Retirar hasta las ${fmtHora(x.hora_limite)}</span>
+                <span class="fcard-line ${urgente ? 'urgent' : ''}" style="display:block">Caduca ${fmtDM(x.fecha_caducidad)} · Retirar hasta las ${fmtHora(x.hora_limite)}</span>
             </span>
         </button>
-        <button class="btn btn-primary btn-block" data-go="/excedente/${esc(x.id)}">${ico('plus')} Aceptar excedente</button></article>`;
+        <button class="btn btn-primary btn-block" data-go="/excedente/${esc(x.id)}">${ico('arrow')} Aceptar excedente</button></article>`;
 }
 
 async function vExcedente(id) {
@@ -830,12 +802,12 @@ async function vExcedente(id) {
                 <div class="cell">${ico('calendar')}<div><small>Caducidad</small><b>${fmtDMA(x.fecha_caducidad)}</b></div></div>
                 <div class="cell">${ico('clock')}<div><small>Retirar hasta</small><b>Hasta las ${fmtHora(x.hora_limite)}</b></div></div>
                 <div class="cell wide">${ico('pin')}<div><small>Punto de recogida</small><b>${esc(d.direccion || 'Sin dirección')}</b></div></div>
-                <div class="cell wide">${ico('user2')}<div><small>Responsable de entrega</small><b>${esc(d.responsable || '—')} · atiende en el local</b></div></div>
+                <div class="cell wide">${ico('user2')}<div><small>Responsable de la empresa</small><b>${esc(d.responsable || '—')} · Acceso por el local</b></div></div>
             </div>
-            <div class="notice notice-err mt16">${ico('heart')}<div><b>Una reserva, un compromiso</b><span>Cuando aceptas, el excedente queda reservado para ti y deja de verse para los demás comedores. Recógelo antes de las ${fmtHora(x.hora_limite)}.</span></div></div>
+            <div class="notice notice-err mt16">${ico('heart')}<div><b>Una reserva, un compromiso</b><span>Solo un comedor puede aceptar este excedente. Al hacerlo, te comprometes a retirarlo antes de las ${fmtHora(x.hora_limite)}.</span></div></div>
             <label class="check mt16"><input type="checkbox" id="ok-compromiso"> Puedo recoger los ${esc(fmtCant(x.cantidad, x.unidad))} dentro del horario indicado.</label>
             <p class="form-error mt8" id="err"></p>
-            <button class="btn btn-primary btn-block mt12" id="aceptar" disabled>${ico('check')} Aceptar para ${esc(S.perfil.nombre_organizacion)}</button>`;
+            <button class="btn btn-primary btn-block mt12" id="aceptar" disabled>${ico('check')} Aceptar para ${esc(corto(S.perfil.nombre_organizacion))}</button>`;
         const chk = $('#ok-compromiso'), btn = $('#aceptar');
         chk.addEventListener('change', () => { btn.disabled = !chk.checked; });
         btn.onclick = async () => {
@@ -869,12 +841,12 @@ async function vReservas() {
         main.innerHTML = `
             <h1 class="h2 mt8">Mis reservas</h1>
             <p class="lead">${esc(S.perfil.nombre_organizacion)} · Recogidas y recepción</p>
-            <div class="tabs"><span class="pill pill-info">${activas.length} por recoger</span></div>
+            <div class="tabs" style="align-items:center">${pill('aceptado')}<span class="small muted">${activas.length ? `${activas.length} recogida${activas.length === 1 ? '' : 's'} pendiente${activas.length === 1 ? '' : 's'}` : 'Sin recogidas pendientes'}</span></div>
             ${activas.length ? `<div class="grid-list">${activas.map(tarjetaReserva).join('')}</div>`
                 : `<div class="empty"><div class="big">🧺</div><b>No tienes recogidas pendientes</b><p class="small mt8">Acepta un excedente desde “Explorar”.</p><button class="btn btn-outline btn-sm mt12" data-go="/explorar">Explorar alimentos</button></div>`}
             ${ultima ? `<h2 class="section-title">Última recepción</h2><div class="grid-list">${tarjetaPasada(ultima, recs[ultima.id])}</div>` : ''}
             ${resto.length ? `<h2 class="section-title">Historial</h2><div class="grid-list">${resto.map((x) => tarjetaPasada(x, recs[x.id])).join('')}</div>` : ''}
-            <p class="footnote">Las porciones confirmadas se suman al contador público de Comida Full.</p>`;
+            <p class="footnote">Las porciones se contabilizan al confirmar la recepción, no al reservar.</p>`;
     };
     S.refresh = cargar;
     try { await cargar(); } catch (e) { $('main').innerHTML = `<div class="notice notice-err">${ico('alert')}<div><b>Error</b><span>${esc(msgErr(e))}</span></div></div>`; }
@@ -891,11 +863,11 @@ function tarjetaReserva(x) {
                 <span style="display:block;margin-top:5px">${pill('aceptado')}</span>
             </span>
         </div>
-        <div class="kv">
-            <div>${ico('clock')}<span>Recoger <b>antes de las ${fmtHora(x.hora_limite)}</b></span></div>
-            <div>${ico('pin')}<span>Dónde recoger <b>${esc(d.direccion || '—')}</b></span></div>
+        <div class="info2" style="grid-template-columns:1fr;margin-top:12px">
+            <div class="cell">${ico('clock')}<div><small>Recogida hoy, ${esc(fmtLargo(hoyISO()))}</small><b>Antes de las ${fmtHora(x.hora_limite)}</b></div></div>
+            <div class="cell">${ico('pin')}<div><small>Dónde recoger</small><b>${esc(d.direccion || '—')}</b></div></div>
         </div>
-        <p class="fcard-line" style="margin-top:10px">1. Coordina con ${esc(d.responsable || 'la empresa')}${d.telefono ? ` · ${esc(d.telefono)}` : ''}. 2. Recoge en el local. 3. Confirma la recepción.</p>
+        <p class="fcard-line" style="margin-top:10px">1. Coordina con ${esc(primerNombre(d.responsable) || 'la empresa')}${d.telefono ? ` · ${esc(d.telefono)}` : ''}. 2. Recoge los alimentos en el local. 3. Confirma la cantidad real al recibirlos.</p>
         <div class="btn-row">
             ${d.telefono ? `<a class="btn btn-outline" style="flex:0 0 auto" href="tel:${esc(d.telefono)}">${ico('phone')} Contactar</a>` : ''}
             <button class="btn btn-primary" data-go="/recepcion/${esc(x.id)}">Confirmar recepción</button>
@@ -904,14 +876,15 @@ function tarjetaReserva(x) {
 
 function tarjetaPasada(x, r) {
     const d = x.donante || {};
-    const texto = x.estado === 'confirmado' && r ? `Recepción confirmada · ${fmtNum(r.porciones_rescatadas)} porciones rescatadas`
+    const fecha = fmtFecha(diaLocal((r && r.fecha) || x.aceptado_at || x.created_at));
+    const texto = x.estado === 'confirmado' && r ? `Recepción confirmada · ${fmtNum(r.porciones_rescatadas)} porciones sumadas.`
         : x.estado === 'rechazado' && r ? `Lote rechazado · ${esc(r.motivo || '')}` : '';
     return `<article class="fcard">
         <div class="fcard-top" style="cursor:default">
             <span class="thumb">${x.foto_url ? `<img src="${esc(x.foto_url)}" alt="" loading="lazy">` : '🍽️'}</span>
             <span style="flex:1;min-width:0">
                 <span class="fcard-title" style="display:block">${esc(x.tipo_alimento)} · ${esc(fmtCant(r && r.cantidad_recibida ? r.cantidad_recibida : x.cantidad, x.unidad))}</span>
-                <span class="fcard-sub" style="display:block">${esc(d.nombre_organizacion || 'Empresa')}</span>
+                <span class="fcard-sub" style="display:block">${esc(d.nombre_organizacion || 'Empresa')} · ${esc(fecha)}</span>
                 <span style="display:block;margin-top:5px">${pill(x.estado)}</span>
             </span>
         </div>
@@ -931,38 +904,50 @@ async function vRecepcion(id) {
     const d = x.donante || {};
     const unidad = x.unidad;
     const porcDe = (q) => Math.max(1, Math.round(Number(x.porciones || x.cantidad) * q / Number(x.cantidad)));
+    const ref = (unidad === 'kg' || unidad === 'litros') ? Math.round(Number(x.porciones || x.cantidad) / Number(x.cantidad) * 100) / 100 : null;
+    let st = null;
     main.innerHTML = `
         <h1 class="h2 mt8">Cierra el recorrido</h1>
         <p class="lead">${esc(x.tipo_alimento)} · ${esc(d.nombre_organizacion || 'Empresa')} · Reserva de ${esc(fmtCant(x.cantidad, unidad))}</p>
         <section class="panel-ok">
             <h3>${ico('checkc')} Confirmar recepción</h3>
-            <p class="sub">Registra únicamente lo que realmente llegó en buen estado.</p>
+            <p class="sub">Registra únicamente lo que recibiste en buen estado.</p>
             <div class="row2 mt8">
                 <div class="field"><label for="cant">Cantidad real *</label><input class="input" id="cant" type="number" inputmode="decimal" min="0.1" step="any" value="${esc(x.cantidad)}"></div>
                 <div class="field"><label for="uni">Unidad *</label><select class="input" id="uni" disabled><option>${esc(unidadTxt(unidad))}</option></select></div>
             </div>
             <p class="calc" id="calc"></p>
+            <p class="note-gray" id="nota"></p>
             <p class="form-error mt8" id="err-ok"></p>
             <button class="btn btn-primary btn-block mt12" id="confirmar"></button>
         </section>
-        <p class="or">O, si algo salió mal, rechaza el lote.</p>
+        <p class="or">O, si no puedes recibir los alimentos</p>
         <section class="panel-bad" style="margin-top:12px">
             <h3>${ico('xc')} Rechazar recepción</h3>
             <div class="field mt8"><label for="motivo">Motivo del rechazo *</label>
-                <textarea class="input" id="motivo" maxlength="240" placeholder="Describe qué ocurrió"></textarea></div>
-            <p class="hint" style="color:var(--red);margin-top:6px">El motivo es obligatorio y se registra en el historial del lote.</p>
+                <div class="input-wrap"><input class="input" id="motivo" maxlength="240" placeholder="Describe qué ocurrió"><span class="i-right">${ico('message', 18)}</span></div></div>
+            <p class="hint" style="color:var(--red);margin-top:6px">El motivo es obligatorio solo para rechazar. No se exige cantidad ni se suman porciones.</p>
             <p class="form-error mt8" id="err-bad"></p>
             <button class="btn btn-danger btn-block mt12" id="rechazar">Rechazar con motivo</button>
         </section>`;
     const pintarCalc = () => {
         const q = parseFloat($('#cant').value);
         if (q > 0) {
-            $('#calc').textContent = `${Number(q).toLocaleString('es-MX', { maximumFractionDigits: 2 })} ${unidadTxt(unidad)} → ${fmtNum(porcDe(q))} porciones rescatadas`;
-            $('#confirmar').innerHTML = `${ico('check')} Confirmar ${Number(q).toLocaleString('es-MX', { maximumFractionDigits: 2 })} ${esc(unidadTxt(unidad))} recibidos`;
-        } else { $('#calc').textContent = ''; $('#confirmar').innerHTML = `${ico('check')} Confirmar recepción`; }
+            const qt = Number(q).toLocaleString('es-AR', { maximumFractionDigits: 2 });
+            const porc = porcDe(q);
+            $('#calc').textContent = `${qt} ${unidadTxt(unidad)} = ${fmtNum(porc)} porciones rescatadas`;
+            $('#confirmar').innerHTML = `${ico('check')} Confirmar ${esc(qt)} ${esc(unidadTxt(unidad))} recibidos`;
+            $('#nota').textContent = st
+                ? `Al confirmar: estado entregado. El contador de porciones pasa de ${fmtNum(st.porciones)} a ${fmtNum(Number(st.porciones || 0) + porc)} y las entregas de ${fmtNum(st.entregas)} a ${fmtNum(Number(st.entregas || 0) + 1)}.${ref ? ` Referencia: ${ref.toLocaleString('es-AR')} porciones/${unidadTxt(unidad)}.` : ''}`
+                : '';
+        } else {
+            $('#calc').textContent = ''; $('#nota').textContent = '';
+            $('#confirmar').innerHTML = `${ico('check')} Confirmar recepción`;
+        }
     };
     $('#cant').addEventListener('input', pintarCalc);
     pintarCalc();
+    API.estadisticas().then((r) => { st = r; if ($('#nota')) pintarCalc(); }).catch(() => {});
 
     $('#confirmar').onclick = async () => {
         const q = parseFloat($('#cant').value);
