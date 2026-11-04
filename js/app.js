@@ -248,6 +248,8 @@ function verMenu() {
         titulo: 'Menú',
         cuerpo: `<div style="margin-top:8px">
             <a class="menu-row" href="#/">${ico('home')} Inicio</a>
+            <a class="menu-row" href="#/participan">${ico('heart')} Quiénes participan</a>
+            <a class="menu-row" href="#/proyecto">${ico('info')} Sobre el proyecto</a>
             ${sesion ? `<a class="menu-row" href="#${panelDe(S.perfil)}">${ico('grid')} Mi panel</a>`
                 : `<a class="menu-row" href="#/login">${ico('login')} Iniciar sesión</a><a class="menu-row" href="#/rol">${ico('userplus')} Crear una cuenta</a>`}
             <button class="menu-row" id="m-ayuda">${ico('help')} Ayuda y contacto</button>
@@ -301,6 +303,7 @@ function vHome() {
                        <p class="linkline green">¿Ya tienes cuenta? <a href="#/login">Iniciar sesión</a></p>`}
             </section>
             <p class="footnote">Datos de la plataforma en tiempo real.</p>
+            <p class="linkline"><a href="#/participan">Quiénes participan</a> · <a href="#/proyecto">Sobre el proyecto</a></p>
         </main>
         ${S.session ? navInferior(null) : ''}`;
     $('#btn-menu').onclick = verMenu;
@@ -462,6 +465,94 @@ function vRegistro(tipo) {
             btn.disabled = false; btn.lastChild.textContent = ' Enviar solicitud';
         }
     });
+}
+
+/* =====================================================================
+   PÁGINAS PÚBLICAS DE INFORMACIÓN (RF-15 a RF-18)
+   Solo datos agregados y públicos: nombre, logotipo de empresas y dirección de comedores.
+   ===================================================================== */
+const volverPublico = () => (S.session && aprobado(S.perfil) ? panelDe(S.perfil) : '/');
+
+async function vParticipan() {
+    app.innerHTML = `
+        ${topBack(volverPublico())}
+        <main class="screen ${S.session ? 'with-nav' : ''}">
+            <span class="tagline">Una red que se construye entre todos</span>
+            <h1 class="h2">Distintos lugares. Un mismo propósito.</h1>
+            <p class="lead">Empresas y comedores comunitarios colaboran para que los alimentos en buen estado no se pierdan y lleguen a más mesas.</p>
+            <div class="numbers">
+                <div><b id="st-emp">–</b><span>empresas aliadas</span></div>
+                <div><b id="st-com">–</b><span>comedores participantes</span></div>
+            </div>
+
+            <h2 class="section-title">Empresas donantes</h2>
+            <div class="stack mt12" id="lista-empresas"><span class="muted small">Cargando…</span></div>
+
+            <h2 class="section-title">Comedores comunitarios</h2>
+            <div class="stack mt12" id="lista-comedores"><span class="muted small">Cargando…</span></div>
+
+            <p class="footnote">Solo mostramos el nombre y el logotipo de las empresas, y la dirección de los comedores. Nunca datos personales.</p>
+            ${S.session ? '' : `<div class="card mt20 center"><b>Tu organización también puede ser parte.</b>
+                <div class="btn-row mt12"><button class="btn btn-primary" data-go="/registro/empresa">Registrar empresa</button><button class="btn btn-outline" data-go="/registro/comedor">Registrar comedor</button></div></div>`}
+        </main>
+        ${S.session ? navInferior(null) : ''}`;
+
+    API.estadisticas().then((st) => {
+        if ($('#st-emp')) $('#st-emp').textContent = fmtNum(st.empresas);
+        if ($('#st-com')) $('#st-com').textContent = fmtNum(st.comedores);
+    }).catch(() => {});
+
+    API.aliados().then((lista) => {
+        const emp = lista.filter((x) => x.rol === 'donante');
+        const com = lista.filter((x) => x.rol === 'comedor');
+        const le = $('#lista-empresas'), lc = $('#lista-comedores');
+        if (le) le.innerHTML = emp.length
+            ? emp.map((x) => `<div class="place">${x.logo_url ? `<img class="lg" src="${esc(x.logo_url)}" alt="Logotipo de ${esc(x.nombre)}">` : ico('store')}<div><b>${esc(x.nombre)}</b><span>Empresa donante</span></div></div>`).join('')
+            : '<span class="muted small">Pronto verás aquí a las empresas que participan.</span>';
+        if (lc) lc.innerHTML = com.length
+            ? com.map((x) => `<div class="place">${ico('pin')}<div><b>${esc(x.nombre)}</b><span>${esc(x.direccion || 'Dirección no disponible')}</span></div></div>`).join('')
+            : '<span class="muted small">Pronto verás aquí a los comedores que participan.</span>';
+    }).catch((e) => {
+        console.warn('Aliados:', e.message);
+        const le = $('#lista-empresas'), lc = $('#lista-comedores');
+        if (le) le.innerHTML = '<span class="muted small">No se pudo cargar la lista.</span>';
+        if (lc) lc.innerHTML = '';
+    });
+}
+
+function vProyecto() {
+    app.innerHTML = `
+        ${topBack(volverPublico())}
+        <main class="screen ${S.session ? 'with-nav' : ''}">
+            <span class="tagline">Sobre Comida Full</span>
+            <h1 class="h2">La comida tiene valor. Compartirla, también.</h1>
+            <p class="lead">Un excedente no siempre es un desperdicio. Cuando un alimento sigue siendo apto para el consumo, puede encontrar un nuevo destino en un comedor comunitario.</p>
+            <p class="lead">Comida Full organiza ese encuentro: hace visible la disponibilidad, facilita el contacto y registra la recepción. La tecnología acompaña; las personas hacen posible la entrega.</p>
+
+            <h2 class="section-title">De un excedente a una oportunidad</h2>
+            <div class="steps">
+                <div class="step"><span class="n">1</span><div><b>Publica</b><span>La empresa comparte qué alimentos tiene y hasta cuándo pueden recogerse.</span></div></div>
+                <div class="step"><span class="n">2</span><div><b>Conecta</b><span>Un comedor acepta el excedente y coordina la recogida con la empresa.</span></div></div>
+                <div class="step"><span class="n">3</span><div><b>Confirma</b><span>El comedor registra lo recibido. Cada porción confirmada suma al contador público.</span></div></div>
+            </div>
+
+            <h2 class="section-title">Un aporte concreto a objetivos compartidos</h2>
+            <div class="stack mt12">
+                <div class="odscard"><div class="odsn"><small>ODS</small><b>2</b></div><div><b>Hambre cero</b><span>Acercamos alimentos disponibles a comedores que sostienen la alimentación de su comunidad. Complementamos su trabajo; no sustituimos el derecho a una alimentación suficiente y digna.</span></div></div>
+                <div class="odscard"><div class="odsn"><small>ODS</small><b>12</b></div><div><b>Producción y consumo responsables</b><span>Facilitamos el aprovechamiento de excedentes aptos para consumo. Publicar cantidades, caducidad y horarios permite organizar recogidas y reducir pérdidas evitables.</span></div></div>
+            </div>
+
+            <h2 class="section-title">Cuidar el alimento. Cuidar el vínculo.</h2>
+            <ul class="checks">
+                <li>${ico('shield')} Buen estado declarado</li>
+                <li>${ico('pin')} Recogida comprometida</li>
+                <li>${ico('checkc')} Recepción confirmada</li>
+            </ul>
+            <p class="footnote" style="text-align:left">Contamos porciones solo después de la recepción. Los datos públicos son siempre agregados y no muestran información personal.</p>
+            ${S.session ? '' : `<button class="btn btn-primary btn-block mt20" data-go="/rol">${ico('arrow')} Quiero ser parte</button>`}
+            <p class="linkline"><a href="#/participan">Ver quiénes participan</a></p>
+        </main>
+        ${S.session ? navInferior(null) : ''}`;
 }
 
 function vEnviado() {
@@ -1163,6 +1254,7 @@ function suscribirTiempoReal() {
 }
 
 const SOLO_PUBLICAS = ['login', 'rol', 'registro', 'enviado'];
+const LIBRES = ['participan', 'proyecto']; // públicas para todos, con o sin sesión
 const ROLES = {
     'mis-publicaciones': 'donante', publicar: 'donante', publicacion: 'donante',
     explorar: 'comedor', excedente: 'comedor', reservas: 'comedor', recepcion: 'comedor',
@@ -1178,12 +1270,12 @@ async function route() {
 
     try {
         if (!S.session) {
-            if (!['', ...SOLO_PUBLICAS].includes(a)) return go('/login');
+            if (!['', ...SOLO_PUBLICAS, ...LIBRES].includes(a)) return go('/login');
         } else {
             if (!S.perfil) await API.cargarPerfil();
             if (SOLO_PUBLICAS.includes(a)) return go(aprobado(S.perfil) ? panelDe(S.perfil) : '/pendiente');
             if (a !== '') {
-                if (!aprobado(S.perfil)) { if (a !== 'pendiente') return go('/pendiente'); }
+                if (!aprobado(S.perfil)) { if (a !== 'pendiente' && !LIBRES.includes(a)) return go('/pendiente'); }
                 else {
                     if (a === 'pendiente') return go(panelDe(S.perfil));
                     const r = ROLES[a];
@@ -1205,6 +1297,8 @@ async function route() {
         case 'rol': return vRol();
         case 'registro': return vRegistro(b);
         case 'enviado': return vEnviado();
+        case 'participan': return vParticipan();
+        case 'proyecto': return vProyecto();
         case 'pendiente': return vPendiente();
         case 'mis-publicaciones': return vMisPublicaciones();
         case 'publicar': return vPublicar();
