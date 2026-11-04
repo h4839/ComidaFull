@@ -21,7 +21,7 @@ Registro → aprobación del administrador (RF-03) → la empresa publica con fo
 
 ## Pantallas (Figma M01–M13)
 
-Todas llevan barra inferior. Públicas: Inicio / Ingresar / Registrarme. Empresa: Publicaciones / Publicar / Perfil. Comedor: Explorar / Mis reservas / Perfil. Administrador: Registros / Perfil. La campana de avisos está arriba a la derecha.
+Las pantallas públicas (M01–M05) no llevan barra inferior, igual que en Figma. Con sesión iniciada, todas la llevan. Empresa: Publicaciones / Publicar / Perfil. Comedor: Explorar / Mis reservas / Perfil. Administrador: Registros / Perfil. La campana de avisos está arriba a la derecha.
 
 Foto de portada: exporta la imagen de Figma como `img/hero.jpg`. Datos de contacto de "Ayuda": constante `CONTACTO` al inicio de `js/app.js`.
 
