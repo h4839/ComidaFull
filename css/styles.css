@@ -236,6 +236,16 @@ button.item:hover, a.item:hover { border-color: #b9d8c4; text-decoration: none; 
 .place svg { color: var(--v700); margin-top: 2px; width: 18px; height: 18px; }
 .place b { display: block; font-size: 14px; }
 .place span { font-size: 12.5px; color: var(--muted); }
+.place img.lg { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; flex: none; }
+.odscard { display: flex; gap: 14px; padding: 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+.odsn { flex: none; width: 44px; }
+.odsn small { display: block; font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--muted); }
+.odsn b { font-size: 30px; font-weight: 800; letter-spacing: -.03em; color: var(--v700); line-height: 1; }
+.odscard > div b { display: block; font-size: 15px; }
+.odscard > div span { font-size: 13px; color: var(--muted); display: block; margin-top: 3px; }
+.checks { list-style: none; display: grid; gap: 8px; margin-top: 12px; }
+.checks li { display: flex; gap: 8px; align-items: center; font-size: 13.5px; font-weight: 600; }
+.checks svg { color: var(--v700); }
 .ods { display: flex; gap: 10px; margin-top: 12px; }
 .ods > div { flex: 1; border-radius: 14px; padding: 12px; color: #fff; font-size: 13px; }
 .ods b { display: block; font-size: 20px; font-weight: 800; }
