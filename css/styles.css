@@ -349,3 +349,17 @@ button.item:hover, a.item:hover { border-color: #b9d8c4; text-decoration: none; 
 @keyframes sp { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---------- Calificación de experiencia (mejora 01) ---------- */
+.stars { display: flex; gap: 6px; justify-content: center; margin: 4px 0 2px; }
+.star { width: 52px; height: 52px; display: grid; place-items: center; background: #fff; border: 1.5px solid var(--line); border-radius: 14px; color: #c3c9c2; transition: background .15s, border-color .15s, color .15s; }
+.star svg { width: 30px; height: 30px; }
+.star.on { color: #d99a00; border-color: #f1dca0; background: var(--amber-bg); }
+.star.on svg { fill: #f5b301; }
+.stars + .hint { text-align: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 10px 14px; border-radius: 99px; border: 1.5px solid var(--line); background: #fff; font-weight: 600; font-size: 13.5px; min-height: 44px; }
+.chip.on { border-color: var(--v700); background: var(--v50); color: var(--v800); }
+@media (max-width: 380px) { .star { width: 46px; height: 46px; } .stars { gap: 4px; } }
+.row2 > * { min-width: 0; }
+input[type="date"].input { min-width: 0; max-width: 100%; }

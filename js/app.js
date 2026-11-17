@@ -13,6 +13,7 @@ const CONTACTO = { correo: '', telefono: '' };
 /* =====================================================================
    Estado global
    ===================================================================== */
+let CAL_PROPIAS = {}; // calificaciones del comedor, por excedente (se llena en vReservas)
 const S = { session: null, perfil: null, avisos: 0, refresh: null, timers: [], channel: null };
 
 /* =====================================================================
@@ -66,7 +67,9 @@ const ICONS = {
     sprout: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
     handheart: '<path d="M11 14h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 16"/><path d="m7 20 1.6-1.4c.3-.4.8-.6 1.4-.6h4c1.1 0 2.1-.4 2.8-1.2l4.6-4.4a2 2 0 0 0-2.75-2.91l-4.2 3.9"/><path d="m2 15 6 6"/><path d="M19.5 8.5c.7-.7 1.5-1.6 1.5-2.7A2.73 2.73 0 0 0 16 4a2.78 2.78 0 0 0-5 1.8c0 1.2.8 2 1.5 2.8L16 12Z"/>',
     sliders: '<path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/>',
-    message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'
+    message: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>'
 };
 const ico = (n, size) => `<svg class="ico" ${size ? `style="width:${size}px;height:${size}px"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
 
@@ -114,12 +117,13 @@ function msgErr(e) {
     return m || 'Ocurrió un error inesperado.';
 }
 
-function toast(msg, tipo = '') {
+function toast(msg, tipo = '', ruta = null) {
     const t = document.createElement('div');
     t.className = `toast ${tipo}`;
     t.textContent = msg;
+    if (ruta) { t.style.cursor = 'pointer'; t.onclick = () => { t.remove(); go(ruta); }; }
     $('#toasts', document).appendChild(t);
-    setTimeout(() => t.remove(), 4200);
+    setTimeout(() => t.remove(), ruta ? 8000 : 4200);
 }
 
 function modal({ titulo, cuerpo = '', texto = '', confirmar = 'Confirmar', cerrar = 'Cerrar', peligro = false, onConfirm }) {
@@ -604,6 +608,7 @@ async function vMisPublicaciones() {
     const pintar = () => {
         const activas = datos.filter((x) => x.estado === 'publicado' || x.estado === 'aceptado');
         const lista = filtro === 'activas' ? activas : datos;
+        const rv = valoresReporte();
         $('main').innerHTML = `
             <h1 class="h2 mt8">Mis publicaciones</h1>
             <p class="lead">${esc(S.perfil.nombre_organizacion)} · Cada alimento cuenta.</p>
@@ -613,8 +618,10 @@ async function vMisPublicaciones() {
             </div>
             ${lista.length ? `<div class="list">${lista.map(itemPublicacion).join('')}</div>`
                 : `<div class="empty"><div class="big">🍞</div><b>Aún no hay publicaciones</b><p class="small mt8">Publica tu primer excedente en menos de un minuto.</p><button class="btn btn-primary btn-sm mt12" data-go="/publicar">Publicar excedente</button></div>`}
+            ${tarjetaReporte(false, rv)}
             <p class="footnote">Solo puedes cancelar publicaciones disponibles.</p>`;
         $$('.tab').forEach((t) => t.onclick = () => { filtro = t.dataset.f; pintar(); });
+        activarReporte(false);
     };
 
     const cargar = async () => {
@@ -720,13 +727,13 @@ function vPublicar() {
             const { error: eUp } = await sb.storage.from('fotos').upload(ruta, blob, { contentType: 'image/jpeg', upsert: false });
             if (eUp) throw eUp;
             const { data: pub } = sb.storage.from('fotos').getPublicUrl(ruta);
-            const { error } = await sb.from('excedentes').insert([{
+            const { data: nuevo, error } = await sb.from('excedentes').insert([{
                 donante_id: S.session.user.id, tipo_alimento: tipo, cantidad, unidad, porciones: porc,
                 fecha_caducidad: fecha, hora_limite: hora, foto_url: pub.publicUrl, buen_estado_confirmado: true, estado: 'publicado'
-            }]);
+            }]).select('id').single();
             if (error) throw error;
             toast('¡Excedente publicado! Los comedores ya pueden verlo.', 'ok');
-            go('/mis-publicaciones');
+            go(nuevo ? `/publicacion/${nuevo.id}` : '/mis-publicaciones');
         } catch (ex) {
             err.textContent = msgErr(ex);
             btn.disabled = false; btn.lastChild.textContent = ' Publicar excedente';
@@ -799,13 +806,16 @@ async function vPubDetalle(id) {
                     <span>${r.resultado === 'confirmada' ? `${fmtNum(r.porciones_rescatadas)} porciones sumadas al contador público.` : `Motivo: ${esc(r.motivo || '—')}`}</span></div></div>` : ''}
             <h2 class="section-title">Historial del lote</h2>
             <ul class="timeline">${(hist.data || []).map((h) => `<li><b>${esc((ESTADOS[h.estado] || [h.estado])[0])}</b><span>${esc(h.detalle || '')}${h.detalle ? ' · ' : ''}${fmtFechaHora(h.fecha)}</span></li>`).join('')}</ul>
-            ${x.estado === 'publicado' ? `<button class="btn btn-danger btn-block mt16" id="cancelar">Cancelar publicación</button>` : ''}`;
+            ${x.estado === 'publicado' ? `<div id="sugerencias"></div><button class="btn btn-danger btn-block mt16" id="cancelar">Cancelar publicación</button>` : ''}
+            ${x.estado === 'confirmado' || x.estado === 'rechazado' ? '<div id="calif-box"></div>' : ''}`;
         const bc = $('#cancelar');
         if (bc) bc.onclick = () => modal({
             titulo: '¿Cancelar esta publicación?', texto: 'Dejará de estar visible para los comedores. Esta acción no se puede deshacer.',
             confirmar: 'Sí, cancelar', peligro: true,
             onConfirm: async () => { const { error } = await sb.rpc('cancelar_excedente', { p_id: id }); if (error) throw error; toast('Publicación cancelada.'); cargar(); }
         });
+        if (x.estado === 'publicado') cargarSugerencias(id);
+        if (x.estado === 'confirmado' || x.estado === 'rechazado') cajaCalificar(id);
     };
     S.refresh = cargar;
     try { await cargar(); } catch (e) { $('main').innerHTML = `<div class="notice notice-err">${ico('alert')}<div><b>Error</b><span>${esc(msgErr(e))}</span></div></div>`; }
@@ -917,14 +927,16 @@ async function vReservas() {
     app.innerHTML = `${topRol()}<main class="screen with-nav">${loader()}</main>${navInferior('/reservas')}`;
     const cargar = async () => {
         const uid = S.session.user.id;
-        const [ex, rc] = await Promise.all([
+        const [ex, rc, ca] = await Promise.all([
             sb.from('excedentes').select('*, donante:perfiles!donante_id(nombre_organizacion,responsable,telefono,direccion)').eq('comedor_id', uid).order('aceptado_at', { ascending: false }),
-            sb.from('recepciones').select('*').eq('comedor_id', uid)
+            sb.from('recepciones').select('*').eq('comedor_id', uid),
+            sb.from('calificaciones').select('excedente_id,estrellas').eq('usuario_id', uid)
         ]);
         const main = $('main');
         if (!main) return;
         if (ex.error) { main.innerHTML = `<div class="notice notice-err">${ico('alert')}<div><b>No se pudo cargar</b><span>${esc(msgErr(ex.error))}</span></div></div>`; return; }
         const recs = {}; (rc.data || []).forEach((r) => { recs[r.excedente_id] = r; });
+        CAL_PROPIAS = {}; (ca.data || []).forEach((c) => { CAL_PROPIAS[c.excedente_id] = c.estrellas; });
         const data = ex.data || [];
         const activas = data.filter((x) => x.estado === 'aceptado');
         const pasadas = data.filter((x) => x.estado !== 'aceptado');
@@ -979,7 +991,12 @@ function tarjetaPasada(x, r) {
                 <span style="display:block;margin-top:5px">${pill(x.estado)}</span>
             </span>
         </div>
-        ${texto ? `<p class="fcard-line" style="margin-top:10px">${texto}</p>` : ''}</article>`;
+        ${texto ? `<p class="fcard-line" style="margin-top:10px">${texto}</p>` : ''}
+        ${(x.estado === 'confirmado' || x.estado === 'rechazado')
+            ? (CAL_PROPIAS[x.id]
+                ? `<p class="fcard-line" style="margin-top:8px">Tu calificación: ${estrellasTxt(CAL_PROPIAS[x.id])}</p>`
+                : `<button class="btn btn-outline btn-sm mt8" data-go="/calificar/${esc(x.id)}">${ico('star')} Calificar experiencia</button>`)
+            : ''}</article>`;
 }
 
 async function vRecepcion(id) {
@@ -1048,7 +1065,7 @@ async function vRecepcion(id) {
         const { error: er } = await sb.rpc('confirmar_recepcion', { p_id: id, p_cantidad: q });
         if (er) { e1.textContent = msgErr(er); $('#confirmar').disabled = false; return; }
         toast('¡Recepción confirmada! El contador público ya subió.', 'ok');
-        go('/reservas');
+        go(`/calificar/${id}`);
     };
     $('#rechazar').onclick = async () => {
         const m = $('#motivo').value.trim();
@@ -1058,7 +1075,7 @@ async function vRecepcion(id) {
         const { error: er } = await sb.rpc('rechazar_recepcion', { p_id: id, p_motivo: m });
         if (er) { e2.textContent = msgErr(er); $('#rechazar').disabled = false; return; }
         toast('Lote rechazado y registrado en el historial.');
-        go('/reservas');
+        go(`/calificar/${id}`);
     };
 }
 
@@ -1073,14 +1090,16 @@ async function vAvisos() {
         if (!main) return;
         if (error) { main.innerHTML = `<div class="notice notice-err">${ico('alert')}<div><b>No se pudieron cargar los avisos</b><span>${esc(msgErr(error))}</span></div></div>`; return; }
         const donante = S.perfil.rol === 'donante';
+        const destino = (n) => (n.tipo === 'calificar' && n.excedente_id ? `/calificar/${n.excedente_id}`
+            : donante && n.excedente_id ? `/publicacion/${n.excedente_id}` : null);
         main.innerHTML = `
             <h1 class="h2 mt8">Avisos</h1>
             <p class="lead">Novedades sobre tus excedentes.</p>
             ${data.length ? `<div class="list">${data.map((n) => `
-                <${donante && n.excedente_id ? `button data-go="/publicacion/${esc(n.excedente_id)}"` : 'div'} class="item" style="${n.leida ? '' : 'border-color:#9ad5ae;background:#f6fcf8'}">
+                <${destino(n) ? `button data-go="${esc(destino(n))}"` : 'div'} class="item" style="${n.leida ? '' : 'border-color:#9ad5ae;background:#f6fcf8'}">
                     <span class="thumb" style="width:44px;height:44px;border-radius:14px">${ico('bell', 20)}</span>
-                    <span class="item-body"><span style="font-size:14px;font-weight:${n.leida ? 500 : 700};display:block">${esc(n.mensaje)}</span><span class="item-sub">${fmtFechaHora(n.created_at)}</span></span>
-                </${donante && n.excedente_id ? 'button' : 'div'}>`).join('')}</div>`
+                    <span class="item-body"><span style="font-size:14px;font-weight:${n.leida ? 500 : 700};display:block">${esc(n.mensaje)}</span><span class="item-sub">${fmtFechaHora(n.created_at)}${n.tipo === 'calificar' ? ' · Toca para calificar' : ''}</span></span>
+                </${destino(n) ? 'button' : 'div'}>`).join('')}</div>`
                 : `<div class="empty"><div class="big">🔔</div><b>Sin avisos por ahora</b></div>`}`;
         if (data.some((n) => !n.leida)) {
             await sb.from('notificaciones').update({ leida: true }).eq('usuario_id', S.session.user.id).eq('leida', false);
@@ -1171,16 +1190,19 @@ async function vAdmin() {
     const pintar = () => {
         const pend = cuentas.filter((c) => !c.aprobado && c.activo !== false);
         const resto = cuentas.filter((c) => !(!c.aprobado && c.activo !== false));
+        const rv = valoresReporte();
         $('main').innerHTML = `
             <h1 class="h2 mt8">Registros</h1>
             <p class="lead">Aprueba o rechaza las solicitudes nuevas y administra las cuentas.</p>
             <div class="tabs">
                 <button class="tab ${tab === 'pendientes' ? 'on' : ''}" data-t="pendientes">Pendientes · ${pend.length}</button>
                 <button class="tab ${tab === 'cuentas' ? 'on' : ''}" data-t="cuentas">Cuentas · ${resto.length}</button>
+                <button class="tab ${tab === 'reportes' ? 'on' : ''}" data-t="reportes">Reportes</button>
             </div>
-            <div class="grid-list">${(tab === 'pendientes' ? pend : resto).map((c) => tarjetaCuenta(c, tab === 'pendientes')).join('')
-                || `<div class="empty"><div class="big">${tab === 'pendientes' ? '✅' : '📂'}</div><b>${tab === 'pendientes' ? 'No hay registros pendientes' : 'Aún no hay cuentas'}</b></div>`}</div>`;
+            ${tab === 'reportes' ? tarjetaReporte(true, rv) : `<div class="grid-list">${(tab === 'pendientes' ? pend : resto).map((c) => tarjetaCuenta(c, tab === 'pendientes')).join('')
+                || `<div class="empty"><div class="big">${tab === 'pendientes' ? '✅' : '📂'}</div><b>${tab === 'pendientes' ? 'No hay registros pendientes' : 'Aún no hay cuentas'}</b></div>`}</div>`}`;
         $$('.tab').forEach((t) => t.onclick = () => { tab = t.dataset.t; pintar(); });
+        if (tab === 'reportes') activarReporte(true);
         $$('[data-ap]').forEach((b) => b.onclick = () => accionCuenta('aprobar_registro', { p_id: b.dataset.ap, p_aprobar: b.dataset.v === '1' }, b.dataset.v === '1' ? 'Cuenta aprobada.' : 'Registro rechazado.', cargar));
         $$('[data-ac]').forEach((b) => b.onclick = () => accionCuenta('set_cuenta_activa', { p_id: b.dataset.ac, p_activo: b.dataset.v === '1' }, b.dataset.v === '1' ? 'Cuenta reactivada.' : 'Cuenta desactivada.', cargar));
     };
@@ -1227,6 +1249,278 @@ async function accionCuenta(fn, args, okMsg, recargar) {
 }
 
 /* =====================================================================
+   MEJORAS EVOLUTIVAS
+   01 Notificación y calificación · 02 Sugerencia inteligente · 03 Reportes exportables
+   ===================================================================== */
+
+/* ---------- 01 · Encuesta de experiencia ---------- */
+const TEXTO_ESTRELLAS = ['', 'Muy mala', 'Mala', 'Regular', 'Buena', 'Excelente'];
+function estrellasTxt(n) { return '★'.repeat(n) + '☆'.repeat(5 - n); }
+
+async function vCalificar(id) {
+    const esDonante = S.perfil.rol === 'donante';
+    const salida = esDonante ? `/publicacion/${id}` : '/reservas';
+    app.innerHTML = `${topBack(salida)}<main class="screen with-nav">${loader()}</main>${navInferior(null)}`;
+    try {
+        const uid = S.session.user.id;
+        const [ex, ya] = await Promise.all([
+            sb.from('excedentes')
+                .select('id,tipo_alimento,estado,donante:perfiles!donante_id(nombre_organizacion),comedor:perfiles!comedor_id(nombre_organizacion)')
+                .eq('id', id).maybeSingle(),
+            sb.from('calificaciones').select('estrellas').eq('excedente_id', id).eq('usuario_id', uid).maybeSingle()
+        ]);
+        if (ex.error) throw ex.error;
+        const main = $('main');
+        if (!main) return;
+        const x = ex.data;
+        if (!x || !['confirmado', 'rechazado'].includes(x.estado)) {
+            main.innerHTML = `<div class="empty"><div class="big">🔍</div><b>Esta entrega todavía no se puede calificar</b><button class="btn btn-primary btn-sm mt12" data-go="${salida}">Volver</button></div>`;
+            return;
+        }
+        if (ya.data) {
+            main.innerHTML = `<div class="empty"><div class="big">💚</div><b>¡Gracias por tu opinión!</b><p class="small mt8">Ya calificaste esta entrega: ${estrellasTxt(ya.data.estrellas)}</p><button class="btn btn-primary btn-sm mt12" data-go="${salida}">Volver</button></div>`;
+            return;
+        }
+        const otro = (esDonante ? x.comedor : x.donante) || {};
+        main.innerHTML = `
+            <h1 class="h2 mt8">¿Qué tal te fue?</h1>
+            <p class="lead">${esc(x.tipo_alimento)} · ${esc(otro.nombre_organizacion || 'la otra parte')}. Solo toma 30 segundos.</p>
+            <form class="form" id="f-cal" novalidate>
+                <div class="field"><span class="label">Tu experiencia general *</span>
+                    <div class="stars" role="radiogroup" aria-label="Calificación de 1 a 5 estrellas">
+                        ${[1, 2, 3, 4, 5].map((n) => `<button type="button" class="star" data-n="${n}" role="radio" aria-checked="false" aria-label="${n} de 5: ${TEXTO_ESTRELLAS[n]}">${ico('star')}</button>`).join('')}
+                    </div>
+                    <span class="hint" id="star-txt" aria-live="polite">Toca una estrella</span></div>
+                <div class="field"><span class="label">¿Se coordinó fácil la recogida?</span>
+                    <div class="chips" role="radiogroup" aria-label="Coordinación de la recogida">
+                        <button type="button" class="chip" data-c="facil" role="radio" aria-checked="false">Sí, fácil</button>
+                        <button type="button" class="chip" data-c="regular" role="radio" aria-checked="false">Más o menos</button>
+                        <button type="button" class="chip" data-c="dificil" role="radio" aria-checked="false">Fue difícil</button>
+                    </div></div>
+                <div class="field"><label for="comentario">Comentario (opcional)</label>
+                    <textarea class="input" id="comentario" rows="3" maxlength="300" placeholder="¿Algo que podamos mejorar?"></textarea>
+                    <span class="hint">Por favor no escribas datos personales.</span></div>
+                <p class="form-error" id="err"></p>
+                <button class="btn btn-primary btn-block" type="submit">${ico('check')} Enviar respuestas</button>
+                <button class="btn btn-ghost btn-block" type="button" id="luego">Ahora no</button>
+            </form>`;
+
+        let est = 0, coord = '';
+        const pintar = () => {
+            $$('.star').forEach((s) => { const on = Number(s.dataset.n) <= est; s.classList.toggle('on', on); s.setAttribute('aria-checked', Number(s.dataset.n) === est); });
+            $$('.chip').forEach((c) => { const on = c.dataset.c === coord; c.classList.toggle('on', on); c.setAttribute('aria-checked', on); });
+            $('#star-txt').textContent = est ? `${est} de 5 · ${TEXTO_ESTRELLAS[est]}` : 'Toca una estrella';
+        };
+        $$('.star').forEach((s) => s.onclick = () => { est = Number(s.dataset.n); pintar(); });
+        $$('.chip').forEach((c) => c.onclick = () => { coord = coord === c.dataset.c ? '' : c.dataset.c; pintar(); });
+        $('#luego').onclick = () => go(salida);
+        $('#f-cal').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const err = $('#err'), btn = $('button[type=submit]');
+            err.textContent = '';
+            if (!est) { err.textContent = 'Elige de 1 a 5 estrellas.'; return; }
+            btn.disabled = true;
+            const { error } = await sb.rpc('calificar_excedente', {
+                p_id: id, p_estrellas: est, p_coordinacion: coord || null, p_comentario: $('#comentario').value.trim() || null
+            });
+            if (error) { err.textContent = msgErr(error); btn.disabled = false; return; }
+            toast('¡Gracias por tu opinión!', 'ok');
+            go(salida);
+        });
+    } catch (e) {
+        const m = $('main');
+        if (m) m.innerHTML = `<div class="notice notice-err">${ico('alert')}<div><b>No se pudo cargar la encuesta</b><span>${esc(msgErr(e))}</span></div></div>`;
+    }
+}
+
+// Tarjeta "Califica tu experiencia" dentro del detalle de una entrega cerrada
+async function cajaCalificar(id) {
+    const box = $('#calif-box');
+    if (!box) return;
+    const { data } = await sb.from('calificaciones').select('estrellas').eq('excedente_id', id).eq('usuario_id', S.session.user.id).maybeSingle();
+    if (!$('#calif-box')) return;
+    box.innerHTML = data
+        ? `<div class="notice mt12">${ico('star')}<div><b>Ya calificaste esta entrega</b><span>${estrellasTxt(data.estrellas)} · ¡Gracias por tu opinión!</span></div></div>`
+        : `<div class="card mt12"><b>¿Qué tal te fue?</b><p class="small muted mt8">Responde una encuesta de 30 segundos.</p>
+            <button class="btn btn-primary btn-block mt12" data-go="/calificar/${esc(id)}">${ico('star')} Calificar experiencia</button></div>`;
+}
+
+/* ---------- 02 · Sugerencia inteligente de comedores ---------- */
+const fmtMin = (m) => (m == null ? '' : m < 60 ? `${Math.max(1, m)} min` : m < 1440 ? `${Math.round(m / 60)} h` : `${Math.round(m / 1440)} d`);
+
+async function cargarSugerencias(id) {
+    const box = $('#sugerencias');
+    if (!box) return;
+    const titulo = '<h2 class="section-title">Comedores sugeridos</h2>';
+    box.innerHTML = titulo + loader();
+    const { data, error } = await sb.rpc('sugerir_comedores', { p_excedente_id: id });
+    if (!$('#sugerencias')) return;
+    if (error) { console.warn('Sugerencias:', error.message); box.innerHTML = `${titulo}<p class="small muted mt8">No se pudieron calcular las sugerencias por ahora.</p>`; return; }
+    if (!data || !data.length) { box.innerHTML = `${titulo}<p class="small muted mt8">Aún no hay comedores aprobados para sugerir.</p>`; return; }
+    box.innerHTML = `${titulo}
+        <p class="small muted mt8">Ordenados por cercanía a tu dirección y por la rapidez con la que suelen aceptar y recoger. Tu publicación ya es visible para todos los comedores.</p>
+        <div class="stack mt12">${data.map((c, i) => tarjetaSugerencia(c, i === 0)).join('')}</div>`;
+}
+
+function tarjetaSugerencia(c, mejor) {
+    const cerca = c.coincidencias >= 3 ? ['Muy cerca', 'pill-ok'] : c.coincidencias === 2 ? ['Misma ciudad', 'pill-ok']
+        : c.coincidencias === 1 ? ['Misma región', 'pill-info'] : ['Sin coincidencia de zona', 'pill-muted'];
+    const rapidez = c.min_aceptar != null
+        ? `Suele aceptar en ~${fmtMin(c.min_aceptar)}${c.min_recoger != null ? ` y recoger en ~${fmtMin(c.min_recoger)}` : ''}`
+        : 'Aún sin historial de entregas';
+    return `<article class="card">
+        <div class="between"><b>${esc(c.nombre)}</b>${mejor ? '<span class="pill pill-ok">Recomendado</span>' : ''}</div>
+        <div class="item-meta"><span class="pill ${cerca[1]}">${cerca[0]}</span>${c.entregas > 0 ? `<span>${fmtNum(c.entregas)} entrega${c.entregas === 1 ? '' : 's'}</span>` : ''}</div>
+        <div class="kv">
+            <div>${ico('pin')}<span>${esc(c.domicilio || 'Dirección no disponible')}</span></div>
+            <div>${ico('clock')}<span>${esc(rapidez)}</span></div>
+            ${c.horario ? `<div>${ico('calendar')}<span>${esc(c.horario)}</span></div>` : ''}
+        </div></article>`;
+}
+
+/* ---------- 03 · Reportes exportables (PDF y Excel) ---------- */
+// Las librerías se descargan solo al exportar, para no hacer más lenta la carga normal (RNF-01).
+const LIBS = {
+    jspdf: 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
+    autotable: 'https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js',
+    xlsx: 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'
+};
+const _scripts = {};
+function cargarScript(src) {
+    if (!_scripts[src]) {
+        _scripts[src] = new Promise((ok, fallo) => {
+            const s = document.createElement('script');
+            s.src = src; s.async = true; s.onload = ok;
+            s.onerror = () => { delete _scripts[src]; fallo(new Error('No se pudo cargar la herramienta de exportación. Revisa tu conexión e inténtalo de nuevo.')); };
+            document.head.appendChild(s);
+        });
+    }
+    return _scripts[src];
+}
+
+function valoresReporte() { return { desde: ($('#r-desde') || {}).value || '', hasta: ($('#r-hasta') || {}).value || '' }; }
+const numR = (n) => Number(n || 0);
+const periodoTxt = (d, h) => (d && h ? `${fmtDMA(d)} al ${fmtDMA(h)}` : d ? `Desde ${fmtDMA(d)}` : h ? `Hasta ${fmtDMA(h)}` : 'Todo el historial');
+
+function tarjetaReporte(admin, v = { desde: '', hasta: '' }) {
+    return `<section class="card mt20" aria-labelledby="rep-t">
+        <b id="rep-t">${ico('download', 18)} Reporte de porciones rescatadas</b>
+        <p class="small muted mt8">${admin ? 'Resumen de todas las empresas.' : 'Resumen de lo que tu empresa ha donado.'} Descárgalo para presentar tus resultados. No incluye datos personales.</p>
+        <div class="row2 mt12">
+            <div class="field"><label for="r-desde">Desde</label><input class="input" id="r-desde" type="date" value="${esc(v.desde)}"></div>
+            <div class="field"><label for="r-hasta">Hasta</label><input class="input" id="r-hasta" type="date" value="${esc(v.hasta)}"></div>
+        </div>
+        <p class="hint mt8">Déjalas vacías para incluir todo el historial.</p>
+        <p class="form-error mt8" id="r-err"></p>
+        <div class="btn-row mt12">
+            <button class="btn btn-primary" data-rep="pdf">${ico('download')} PDF</button>
+            <button class="btn btn-outline" data-rep="xlsx">${ico('download')} Excel</button>
+        </div></section>`;
+}
+
+function resumenReporte(filas) {
+    const ok = filas.filter((f) => f.resultado_recepcion === 'confirmada');
+    const cals = filas.map((f) => Number(f.calificacion_promedio)).filter((n) => n > 0);
+    return {
+        entregas: ok.length,
+        rechazos: filas.length - ok.length,
+        porciones: ok.reduce((s, f) => s + numR(f.porciones_rescatadas), 0),
+        calif: cals.length ? Math.round(cals.reduce((s, n) => s + n, 0) / cals.length * 10) / 10 : null
+    };
+}
+
+async function generarPDF(meta) {
+    await cargarScript(LIBS.jspdf);
+    await cargarScript(LIBS.autotable);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const r = meta.resumen;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(21, 128, 61);
+    doc.text('Comida Full · Reporte de alimentos rescatados', 40, 46);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(90);
+    doc.text(`${meta.org}  ·  Periodo: ${meta.periodo}  ·  Generado el ${fmtDMA(hoyISO())}`, 40, 64);
+    const kpis = [
+        ['Porciones rescatadas', fmtNum(r.porciones)], ['Entregas confirmadas', fmtNum(r.entregas)],
+        ['Lotes rechazados', fmtNum(r.rechazos)], ['Calificación promedio', r.calif != null ? `${r.calif} / 5` : 'Sin datos']
+    ];
+    kpis.forEach(([t, v], i) => {
+        const x = 40 + i * 190;
+        doc.setDrawColor(201, 236, 213); doc.setFillColor(240, 253, 244); doc.roundedRect(x, 78, 176, 52, 8, 8, 'FD');
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90); doc.text(t, x + 12, 96);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(20, 83, 45); doc.text(String(v), x + 12, 119);
+    });
+    const alto = doc.internal.pageSize.getHeight(), ancho = doc.internal.pageSize.getWidth();
+    doc.autoTable({
+        startY: 146, head: [meta.cols], body: meta.rows, theme: 'striped',
+        styles: { fontSize: 8.5, cellPadding: 4 }, headStyles: { fillColor: [21, 128, 61] },
+        margin: { left: 40, right: 40, bottom: 40 },
+        didDrawPage: () => {
+            doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120);
+            doc.text('Comida Full · Este reporte no contiene datos personales ni de beneficiarios.', 40, alto - 20);
+            doc.text(`Página ${doc.internal.getNumberOfPages()}`, ancho - 90, alto - 20);
+        }
+    });
+    doc.save(`comida-full-reporte-${hoyISO()}.pdf`);
+}
+
+async function generarExcel(meta) {
+    await cargarScript(LIBS.xlsx);
+    const X = window.XLSX, r = meta.resumen;
+    const wb = X.utils.book_new();
+    const resumen = X.utils.aoa_to_sheet([
+        ['Comida Full · Reporte de alimentos rescatados'], [],
+        ['Organización', meta.org], ['Periodo', meta.periodo], ['Generado el', fmtDMA(hoyISO())], [],
+        ['Porciones rescatadas', r.porciones], ['Entregas confirmadas', r.entregas], ['Lotes rechazados', r.rechazos],
+        ['Calificación promedio (1 a 5)', r.calif != null ? r.calif : 'Sin calificaciones'], [],
+        ['Este reporte no contiene datos personales ni de beneficiarios.']
+    ]);
+    resumen['!cols'] = [{ wch: 32 }, { wch: 40 }];
+    const detalle = X.utils.aoa_to_sheet([meta.cols, ...meta.rows]);
+    detalle['!cols'] = meta.cols.map((c) => ({ wch: Math.max(13, c.length + 4) }));
+    X.utils.book_append_sheet(wb, resumen, 'Resumen');
+    X.utils.book_append_sheet(wb, detalle, 'Detalle');
+    X.writeFile(wb, `comida-full-reporte-${hoyISO()}.xlsx`);
+}
+
+function activarReporte(admin) {
+    $$('[data-rep]').forEach((b) => b.onclick = async () => {
+        const err = $('#r-err');
+        err.textContent = '';
+        const { desde, hasta } = valoresReporte();
+        if (desde && hasta && desde > hasta) { err.textContent = 'La fecha inicial no puede ser posterior a la final.'; return; }
+        const botones = $$('[data-rep]'), html = b.innerHTML;
+        botones.forEach((x) => { x.disabled = true; });
+        b.textContent = 'Generando…';
+        try {
+            const { data, error } = await sb.rpc('reporte_donaciones', { p_desde: desde || null, p_hasta: hasta || null, p_donante: null });
+            if (error) throw error;
+            const filas = data || [];
+            if (!filas.length) { err.textContent = 'No hay entregas cerradas en ese periodo.'; return; }
+            const meta = {
+                org: admin ? 'Todas las empresas' : S.perfil.nombre_organizacion,
+                periodo: periodoTxt(desde, hasta),
+                resumen: resumenReporte(filas),
+                cols: ['Fecha', ...(admin ? ['Empresa'] : []), 'Alimento', 'Cant. publicada', 'Unidad', 'Cant. recibida', 'Comedor', 'Resultado', 'Porciones', 'Calificación'],
+                rows: filas.map((f) => {
+                    const ok = f.resultado_recepcion === 'confirmada';
+                    return [fmtDMA(f.fecha_recepcion), ...(admin ? [f.empresa] : []), f.alimento, numR(f.cantidad_publicada), unidadTxt(f.unidad_medida),
+                        ok ? numR(f.cantidad_recibida) : '', f.comedor, ok ? 'Entregado' : 'Rechazado', numR(f.porciones_rescatadas),
+                        f.calificacion_promedio != null ? Number(f.calificacion_promedio) : ''];
+                })
+            };
+            if (b.dataset.rep === 'pdf') await generarPDF(meta); else await generarExcel(meta);
+            toast('Reporte descargado.', 'ok');
+        } catch (e) {
+            const el = $('#r-err');
+            if (el) el.textContent = msgErr(e);
+        } finally {
+            botones.forEach((x) => { x.disabled = false; });
+            b.innerHTML = html;
+        }
+    });
+}
+
+/* =====================================================================
    Sesión y navegación
    ===================================================================== */
 async function cerrarSesion() {
@@ -1247,7 +1541,8 @@ function suscribirTiempoReal() {
     S.channel = sb.channel('cf-' + uid)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'excedentes' }, () => { if (S.refresh) S.refresh(); })
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notificaciones', filter: `usuario_id=eq.${uid}` }, (p) => {
-            toast(p.new.mensaje, 'ok'); S.avisos += 1; pintarBadge();
+            toast(p.new.mensaje, 'ok', p.new.tipo === 'calificar' && p.new.excedente_id ? '/calificar/' + p.new.excedente_id : null);
+            S.avisos += 1; pintarBadge();
             if (S.refresh && location.hash.startsWith('#/avisos')) S.refresh();
         })
         .subscribe();
@@ -1280,7 +1575,7 @@ async function route() {
                     if (a === 'pendiente') return go(panelDe(S.perfil));
                     const r = ROLES[a];
                     if (r && S.perfil.rol !== r) return go(panelDe(S.perfil));
-                    if (a === 'avisos' && S.perfil.rol === 'admin') return go('/admin');
+                    if ((a === 'avisos' || a === 'calificar') && S.perfil.rol === 'admin') return go('/admin');
                 }
             }
             if (aprobado(S.perfil) && S.perfil.rol !== 'admin') await API.contarAvisos();
@@ -1307,6 +1602,7 @@ async function route() {
         case 'excedente': return vExcedente(b);
         case 'reservas': return vReservas();
         case 'recepcion': return vRecepcion(b);
+        case 'calificar': return vCalificar(b);
         case 'avisos': return vAvisos();
         case 'perfil': return vPerfil();
         case 'admin': return vAdmin();
