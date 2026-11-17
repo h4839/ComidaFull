@@ -1,0 +1,44 @@
+[33mcommit 5f91f7609bf24fa6f95c10b4736082c036b6cba1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: mm-leslie <lesliesales140@gmail.com>
+Date:   Wed Nov 4 02:55:28 2026 -0600
+
+    Add files via upload
+
+ js/app.js | 98 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m--[m
+ 1 file changed, 96 insertions(+), 2 deletions(-)
+
+[33mcommit ebbc443172cb788650668c0aa31a97b71f92e9a6[m
+Author: mm-leslie <lesliesales140@gmail.com>
+Date:   Wed Nov 4 02:54:12 2026 -0600
+
+    Add files via upload
+
+ css/styles.css | 10 [32m++++++++++[m
+ 1 file changed, 10 insertions(+)
+
+[33mcommit 812ca382924241628c5714730b788af36d385944[m
+Author: mm-leslie <lesliesales140@gmail.com>
+Date:   Tue Nov 3 22:15:26 2026 -0600
+
+    Delete css/index.html
+
+ css/index.html | 25 [31m-------------------------[m
+ 1 file changed, 25 deletions(-)
+
+[33mcommit d95b38aee3bc50c642eaaf4a37379693ea7f699f[m
+Author: mm-leslie <lesliesales140@gmail.com>
+Date:   Tue Nov 3 22:15:03 2026 -0600
+
+    Add files via upload
+
+ index.html | 25 [32m+++++++++++++++++++++++++[m
+ 1 file changed, 25 insertions(+)
+
+[33mcommit 5ff5c18f392ab83a3eaf2dabded2d82b804f74c2[m
+Author: mm-leslie <lesliesales140@gmail.com>
+Date:   Tue Nov 3 22:14:10 2026 -0600
+
+    Delete index.html
+
+ index.html | 25 [31m-------------------------[m
+ 1 file changed, 25 deletions(-)
